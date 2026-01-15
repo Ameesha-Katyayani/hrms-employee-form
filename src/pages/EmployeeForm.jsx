@@ -70,6 +70,9 @@ export default function EmployeeForm() {
     
     // PAN Details
     panNumber: "",
+    
+    // Katyayani Letter
+    hasKatyayaniLetter: "",
   });
 
   const [documents, setDocuments] = useState({
@@ -78,6 +81,7 @@ export default function EmployeeForm() {
     bankProof: null,
     tenthMarksheet: null,
     twelfthMarksheet: null,
+    katyayaniLetter: null,
   });
 
   const [educationList, setEducationList] = useState([
@@ -226,7 +230,14 @@ const handleWorkExperienceChange = (id, field, value) => {
         twelfthMarksheetUrl = await uploadFile(documents.twelfthMarksheet, 'employee-documents', twelfthPath);
       }
 
-      // 6. Insert employee data
+      // 6. Upload Katyayani Letter if provided
+      let katyayaniLetterUrl = null;
+      if (documents.katyayaniLetter) {
+        const letterPath = `katyayani-letters/${Date.now()}_${documents.katyayaniLetter.name}`;
+        katyayaniLetterUrl = await uploadFile(documents.katyayaniLetter, 'employee-documents', letterPath);
+      }
+
+      // 7. Insert employee data
       const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
         .insert([
@@ -279,6 +290,8 @@ const handleWorkExperienceChange = (id, field, value) => {
             aadhaar_card_url: aadhaarCardUrl,
             pan_number: form.panNumber,
             pan_card_url: panCardUrl,
+            has_katyayani_letter: form.hasKatyayaniLetter,
+            katyayani_letter_url: katyayaniLetterUrl,
           }
         ])
         .select();
@@ -1501,6 +1514,58 @@ const handleWorkExperienceChange = (id, field, value) => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Katyayani Offer/Appointment Letter Section */}
+        <div className="form-section">
+          <h3 className="section-title">Katyayani Offer/Appointment Letter</h3>
+          
+          <div className="form-group">
+            <label>Do you have a Katyayani Offer Letter or Appointment Letter? *</label>
+            <div style={{display: 'flex', gap: '20px', marginTop: '10px'}}>
+              <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+                <input
+                  type="radio"
+                  name="hasKatyayaniLetter"
+                  value="yes"
+                  checked={form.hasKatyayaniLetter === "yes"}
+                  onChange={handleChange}
+                  required
+                />
+                <span>Yes</span>
+              </label>
+              <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+                <input
+                  type="radio"
+                  name="hasKatyayaniLetter"
+                  value="no"
+                  checked={form.hasKatyayaniLetter === "no"}
+                  onChange={handleChange}
+                  required
+                />
+                <span>No</span>
+              </label>
+            </div>
+          </div>
+
+          {form.hasKatyayaniLetter === "yes" && (
+            <div className="form-group">
+              <label htmlFor="katyayaniLetter">Upload Offer/Appointment Letter *</label>
+              <input
+                id="katyayaniLetter"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleDocumentChange("katyayaniLetter", e.target.files[0])}
+                required
+              />
+              <small className="file-hint">Upload PDF, JPG, or PNG (Max 5MB)</small>
+              {documents.katyayaniLetter && (
+                <div className="file-preview">
+                  <strong>Katyayani Letter:</strong> {documents.katyayaniLetter.name}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <button type="submit" className="submit-btn">
