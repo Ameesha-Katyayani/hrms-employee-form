@@ -1,0 +1,558 @@
+import { useState } from "react";
+import axios from "axios";
+import "./EmployeeForm.css";
+
+export default function EmployeeForm() {
+  const [form, setForm] = useState({
+    // Personal Information
+    name: "",
+    email: "",
+    alternateEmail: "",
+    dateOfBirth: "",
+    maritalStatus: "",
+    bloodGroup: "",
+    
+    // Contact Information
+    phone: "",
+    mobile: "",
+    alternatePhone: "",
+    
+    // Current Address
+    currentAddress: "",
+    currentCity: "",
+    currentState: "",
+    currentPincode: "",
+    
+    // Permanent Address
+    permanentAddress: "",
+    permanentCity: "",
+    permanentState: "",
+    permanentPincode: "",
+    
+    // Family Information
+    fatherName: "",
+    motherName: "",
+    spouseName: "",
+    numberOfChildren: "",
+    
+    // Guardian Information
+    guardianName: "",
+    guardianRelation: "",
+    guardianPhone: "",
+    guardianAddress: "",
+    
+    // Emergency Contact
+    emergencyContactName: "",
+    emergencyContactRelation: "",
+    emergencyContactPhone: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      await axios.post("https://your-api-url.com/api/employee", form);
+      alert("Employee form submitted successfully!");
+      // Reset form
+      setForm({
+        name: "",
+        email: "",
+        alternateEmail: "",
+        dateOfBirth: "",
+        maritalStatus: "",
+        bloodGroup: "",
+        phone: "",
+        mobile: "",
+        alternatePhone: "",
+        currentAddress: "",
+        currentCity: "",
+        currentState: "",
+        currentPincode: "",
+        permanentAddress: "",
+        permanentCity: "",
+        permanentState: "",
+              permanentPincode: "",
+              fatherName: "",
+              motherName: "",
+              spouseName: "",
+              numberOfChildren: "",
+              guardianName: "",
+              guardianRelation: "",
+              guardianPhone: "",
+              guardianAddress: "",
+              emergencyContactName: "",
+              emergencyContactRelation: "",
+              emergencyContactPhone: "",
+            });
+          } catch (error) {
+            console.error("Error submitting form:", error);
+            alert("Failed to submit form. Please try again.");
+          }
+        };
+      
+        const copyToCurrentAddress = () => {
+          setForm({
+            ...form,
+            currentAddress: form.permanentAddress,
+            currentCity: form.permanentCity,
+            currentState: form.permanentState,
+            currentPincode: form.permanentPincode,
+          });
+        };
+      
+        return (
+          <div className="employee-form-container">
+            <h2 className="form-title">Employee Information Form</h2>
+            <form onSubmit={handleSubmit} className="employee-form">
+              {/* Personal Information Section */}
+              <div className="form-section">
+          <h3 className="section-title">Personal Information</h3>
+          
+          <div className="form-group">
+            <label htmlFor="name">Full Name *</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="Enter full name"
+              value={form.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="dateOfBirth">Date of Birth *</label>
+              <input
+                id="dateOfBirth"
+                name="dateOfBirth"
+                type="date"
+                value={form.dateOfBirth}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="bloodGroup">Blood Group *</label>
+              <select
+                id="bloodGroup"
+                name="bloodGroup"
+                value={form.bloodGroup}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="maritalStatus">Marital Status *</label>
+            <select
+              id="maritalStatus"
+              name="maritalStatus"
+              value={form.maritalStatus}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select status</option>
+              <option value="Single">Single</option>
+              <option value="Married">Married</option>
+              <option value="Divorced">Divorced</option>
+              <option value="Widowed">Widowed</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Contact Information Section */}
+        <div className="form-section">
+          <h3 className="section-title">Contact Information</h3>
+          
+          <div className="form-group">
+            <label htmlFor="email">Email *</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Enter email address"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="alternateEmail">Alternate Email</label>
+            <input
+              id="alternateEmail"
+              name="alternateEmail"
+              type="email"
+              placeholder="Enter alternate email"
+              value={form.alternateEmail}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="phone">Phone Number *</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="Enter phone number"
+                value={form.phone}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="mobile">Mobile Number *</label>
+              <input
+                id="mobile"
+                name="mobile"
+                type="tel"
+                placeholder="Enter mobile number"
+                value={form.mobile}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="alternatePhone">Alternate Phone</label>
+            <input
+              id="alternatePhone"
+              name="alternatePhone"
+              type="tel"
+              placeholder="Enter alternate phone"
+              value={form.alternatePhone}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        {/* Current Address Section */}
+        <div className="form-section">
+          <h3 className="section-title">Current Address</h3>
+          
+          <div className="form-group">
+            <label htmlFor="currentAddress">Street Address *</label>
+            <textarea
+              id="currentAddress"
+              name="currentAddress"
+              placeholder="Enter current address"
+              value={form.currentAddress}
+              onChange={handleChange}
+              rows="3"
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="currentCity">City *</label>
+              <input
+                id="currentCity"
+                name="currentCity"
+                type="text"
+                placeholder="City"
+                value={form.currentCity}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="currentState">State *</label>
+              <input
+                id="currentState"
+                name="currentState"
+                type="text"
+                placeholder="State"
+                value={form.currentState}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="currentPincode">Pincode *</label>
+            <input
+              id="currentPincode"
+              name="currentPincode"
+              type="text"
+              placeholder="Pincode"
+              value={form.currentPincode}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Permanent Address Section */}
+        <div className="form-section">
+          <div className="section-header">
+            <h3 className="section-title">Permanent Address</h3>
+            <button
+              type="button"
+              className="copy-btn"
+              onClick={copyToCurrentAddress}
+            >
+              Same as Current
+            </button>
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="permanentAddress">Street Address *</label>
+            <textarea
+              id="permanentAddress"
+              name="permanentAddress"
+              placeholder="Enter permanent address"
+              value={form.permanentAddress}
+              onChange={handleChange}
+              rows="3"
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="permanentCity">City *</label>
+              <input
+                id="permanentCity"
+                name="permanentCity"
+                type="text"
+                placeholder="City"
+                value={form.permanentCity}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="permanentState">State *</label>
+              <input
+                id="permanentState"
+                name="permanentState"
+                type="text"
+                placeholder="State"
+                value={form.permanentState}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="permanentPincode">Pincode *</label>
+            <input
+              id="permanentPincode"
+              name="permanentPincode"
+              type="text"
+              placeholder="Pincode"
+              value={form.permanentPincode}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Family Information Section */}
+        <div className="form-section">
+          <h3 className="section-title">Family Information</h3>
+          
+          <div className="form-group">
+            <label htmlFor="fatherName">Father's Name *</label>
+            <input
+              id="fatherName"
+              name="fatherName"
+              type="text"
+              placeholder="Enter father's name"
+              value={form.fatherName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="motherName">Mother's Name *</label>
+            <input
+              id="motherName"
+              name="motherName"
+              type="text"
+              placeholder="Enter mother's name"
+              value={form.motherName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="spouseName">Spouse Name</label>
+              <input
+                id="spouseName"
+                name="spouseName"
+                type="text"
+                placeholder="Enter spouse name"
+                value={form.spouseName}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="numberOfChildren">Number of Children</label>
+              <input
+                id="numberOfChildren"
+                name="numberOfChildren"
+                type="number"
+                placeholder="0"
+                value={form.numberOfChildren}
+                onChange={handleChange}
+                min="0"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Guardian Information Section */}
+        <div className="form-section">
+          <h3 className="section-title">Guardian Information</h3>
+          
+          <div className="form-group">
+            <label htmlFor="guardianName">Guardian Name *</label>
+            <input
+              id="guardianName"
+              name="guardianName"
+              type="text"
+              placeholder="Enter guardian name"
+              value={form.guardianName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="guardianRelation">Relation *</label>
+              <select
+                id="guardianRelation"
+                name="guardianRelation"
+                value={form.guardianRelation}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select</option>
+                <option value="Father">Father</option>
+                <option value="Mother">Mother</option>
+                <option value="Spouse">Spouse</option>
+                <option value="Brother">Brother</option>
+                <option value="Sister">Sister</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="guardianPhone">Guardian Phone *</label>
+              <input
+                id="guardianPhone"
+                name="guardianPhone"
+                type="tel"
+                placeholder="Enter phone number"
+                value={form.guardianPhone}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="guardianAddress">Guardian Address *</label>
+            <textarea
+              id="guardianAddress"
+              name="guardianAddress"
+              placeholder="Enter guardian address"
+              value={form.guardianAddress}
+              onChange={handleChange}
+              rows="3"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Emergency Contact Section */}
+        <div className="form-section">
+          <h3 className="section-title">Emergency Contact</h3>
+          
+          <div className="form-group">
+            <label htmlFor="emergencyContactName">Contact Name *</label>
+            <input
+              id="emergencyContactName"
+              name="emergencyContactName"
+              type="text"
+              placeholder="Enter emergency contact name"
+              value={form.emergencyContactName}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="emergencyContactRelation">Relation *</label>
+              <select
+                id="emergencyContactRelation"
+                name="emergencyContactRelation"
+                value={form.emergencyContactRelation}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select</option>
+                <option value="Parent">Parent</option>
+                <option value="Spouse">Spouse</option>
+                <option value="Sibling">Sibling</option>
+                <option value="Friend">Friend</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="emergencyContactPhone">Contact Phone *</label>
+              <input
+                id="emergencyContactPhone"
+                name="emergencyContactPhone"
+                type="tel"
+                placeholder="Enter phone number"
+                value={form.emergencyContactPhone}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" className="submit-btn">
+          Submit Form
+        </button>
+      </form>
+    </div>
+  );
+}
