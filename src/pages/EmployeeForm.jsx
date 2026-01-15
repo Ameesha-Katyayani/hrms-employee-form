@@ -82,6 +82,7 @@ export default function EmployeeForm() {
     tenthMarksheet: null,
     twelfthMarksheet: null,
     katyayaniLetter: null,
+    photo: null,
   });
 
   const [educationList, setEducationList] = useState([
@@ -195,21 +196,28 @@ const handleWorkExperienceChange = (id, field, value) => {
       // Show loading state
       alert("Submitting form... Please wait.");
 
-      // 1. Upload Aadhaar card
+      // 1. Upload Employee Photo
+      let photoUrl = null;
+      if (documents.photo) {
+        const photoPath = `photos/${Date.now()}_${documents.photo.name}`;
+        photoUrl = await uploadFile(documents.photo, 'employee-documents', photoPath);
+      }
+
+      // 2. Upload Aadhaar card
       let aadhaarCardUrl = null;
       if (documents.aadhaarCard) {
         const aadhaarPath = `aadhaar/${Date.now()}_${documents.aadhaarCard.name}`;
         aadhaarCardUrl = await uploadFile(documents.aadhaarCard, 'employee-documents', aadhaarPath);
       }
 
-      // 2. Upload PAN card
+      // 3. Upload PAN card
       let panCardUrl = null;
       if (documents.panCard) {
         const panPath = `pan/${Date.now()}_${documents.panCard.name}`;
         panCardUrl = await uploadFile(documents.panCard, 'employee-documents', panPath);
       }
 
-      // 3. Upload Bank Proof
+      // 4. Upload Bank Proof
       let bankProofUrl = null;
       if (documents.bankProof) {
         const bankPath = `bank-proof/${Date.now()}_${documents.bankProof.name}`;
@@ -248,6 +256,7 @@ const handleWorkExperienceChange = (id, field, value) => {
             date_of_birth: form.dateOfBirth,
             marital_status: form.maritalStatus,
             blood_group: form.bloodGroup,
+            photo_url: photoUrl,
             phone: form.phone,
             mobile: form.mobile,
             alternate_phone: form.alternatePhone,
@@ -444,6 +453,23 @@ const handleWorkExperienceChange = (id, field, value) => {
         <div className="form-section">
           <h3 className="section-title">Personal Information</h3>
           
+          <div className="form-group">
+            <label htmlFor="photo">Upload Photo *</label>
+            <input
+              id="photo"
+              type="file"
+              accept=".jpg,.jpeg,.png"
+              onChange={(e) => handleDocumentChange("photo", e.target.files[0])}
+              required
+            />
+            <small className="file-hint">Upload JPG or PNG (passport size photo recommended)</small>
+            {documents.photo && (
+              <div className="file-preview">
+                <strong>Photo:</strong> {documents.photo.name}
+              </div>
+            )}
+          </div>
+
           <div className="form-group">
             <label htmlFor="name">Full Name *</label>
             <input
@@ -874,6 +900,9 @@ const handleWorkExperienceChange = (id, field, value) => {
               + Add Education
             </button>
           </div>
+          <p style={{color: '#666', fontSize: '14px', marginBottom: '20px', marginTop: '-10px'}}>
+            To add more education information, click "Add Education" button
+          </p>
 
           {educationList.map((education, index) => (
             <div key={education.id} className="education-item">
@@ -995,6 +1024,9 @@ const handleWorkExperienceChange = (id, field, value) => {
               + Add Work Experience
             </button>
           </div>
+          <p style={{color: '#666', fontSize: '14px', marginBottom: '20px', marginTop: '-10px'}}>
+            To add more work experience, click "Add Work Experience" button
+          </p>
 
           {workExperienceList.map((experience, index) => (
             <div key={experience.id} className="education-item">
