@@ -97,19 +97,7 @@ export default function EmployeeForm() {
     },
   ]);
 
-  const [workExperienceList, setWorkExperienceList] = useState([
-    {
-      id: 1,
-      companyName: "",
-      designation: "",
-      fromDate: "",
-      toDate: "",
-      salary: "",
-      salarySlip: null,
-      relievingLetter: null,
-      experienceLetter: null,
-    },
-  ]);
+  const [workExperienceList, setWorkExperienceList] = useState([]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -335,6 +323,11 @@ const handleWorkExperienceChange = (id, field, value) => {
 
       // 5. Upload work experience documents and insert records
       for (const exp of workExperienceList) {
+        // Skip empty work experience entries
+        if (!exp.companyName || !exp.designation) {
+          continue;
+        }
+
         let salarySlipUrl = null;
         let relievingLetterUrl = null;
         let experienceLetterUrl = null;
@@ -1044,7 +1037,7 @@ const handleWorkExperienceChange = (id, field, value) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor={`companyName-${experience.id}`}>Company Name *</label>
+                <label htmlFor={`companyName-${experience.id}`}>Company Name</label>
                 <input
                   id={`companyName-${experience.id}`}
                   type="text"
@@ -1053,12 +1046,11 @@ const handleWorkExperienceChange = (id, field, value) => {
                   onChange={(e) =>
                     handleWorkExperienceChange(experience.id, "companyName", e.target.value)
                   }
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor={`designation-${experience.id}`}>Designation *</label>
+                <label htmlFor={`designation-${experience.id}`}>Designation</label>
                 <input
                   id={`designation-${experience.id}`}
                   type="text"
@@ -1067,13 +1059,12 @@ const handleWorkExperienceChange = (id, field, value) => {
                   onChange={(e) =>
                     handleWorkExperienceChange(experience.id, "designation", e.target.value)
                   }
-                  required
                 />
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor={`fromDate-${experience.id}`}>From Date *</label>
+                  <label htmlFor={`fromDate-${experience.id}`}>From Date</label>
                   <input
                     id={`fromDate-${experience.id}`}
                     type="date"
@@ -1081,12 +1072,11 @@ const handleWorkExperienceChange = (id, field, value) => {
                     onChange={(e) =>
                       handleWorkExperienceChange(experience.id, "fromDate", e.target.value)
                     }
-                    required
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor={`toDate-${experience.id}`}>To Date *</label>
+                  <label htmlFor={`toDate-${experience.id}`}>To Date</label>
                   <input
                     id={`toDate-${experience.id}`}
                     type="date"
@@ -1094,13 +1084,12 @@ const handleWorkExperienceChange = (id, field, value) => {
                     onChange={(e) =>
                       handleWorkExperienceChange(experience.id, "toDate", e.target.value)
                     }
-                    required
                   />
                 </div>
               </div>
 
               <div className="form-group">
-                <label htmlFor={`salary-${experience.id}`}>Last Salary (CTC) *</label>
+                <label htmlFor={`salary-${experience.id}`}>Last Salary (CTC)</label>
                 <input
                   id={`salary-${experience.id}`}
                   type="text"
@@ -1109,7 +1098,6 @@ const handleWorkExperienceChange = (id, field, value) => {
                   onChange={(e) =>
                     handleWorkExperienceChange(experience.id, "salary", e.target.value)
                   }
-                  required
                 />
               </div>
 
