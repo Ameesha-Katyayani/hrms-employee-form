@@ -98,6 +98,9 @@ export default function EmployeeForm() {
   ]);
 
   const [workExperienceList, setWorkExperienceList] = useState([]);
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -182,7 +185,7 @@ const handleWorkExperienceChange = (id, field, value) => {
 
     try {
       // Show loading state
-      alert("Submitting form... Please wait.");
+      setIsSubmitting(true);
 
       // 1. Upload Employee Photo
       let photoUrl = null;
@@ -366,9 +369,10 @@ const handleWorkExperienceChange = (id, field, value) => {
         if (workError) throw workError;
       }
 
-      alert("Employee form submitted successfully!");
+      // Show success dialog
+      setIsSubmitting(false);
+      setShowSuccessDialog(true);
       
-      // Reset form
       // Reset form
       setForm({
         name: "",
@@ -422,8 +426,23 @@ const handleWorkExperienceChange = (id, field, value) => {
         },
       ]);
     } catch (error) {
-      alert("Error submitting form. Please try again.");
+      setIsSubmitting(false);
       console.error(error);
+      
+      // Handle specific errors
+      if (error.code === '23505') {
+        if (error.message.includes('aadhaar_number')) {
+          alert("This Aadhaar number is already registered. Please check the number or contact support.");
+        } else if (error.message.includes('pan_number')) {
+          alert("This PAN number is already registered. Please check the number or contact support.");
+        } else if (error.message.includes('email')) {
+          alert("This email is already registered. Please use a different email.");
+        } else {
+          alert("This record already exists in the system. Please check your details.");
+        }
+      } else {
+        alert("Error submitting form. Please try again.");
+      }
     }
   };
 
@@ -439,6 +458,33 @@ const handleWorkExperienceChange = (id, field, value) => {
 
   return (
     <div className="form-container">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="loading-overlay">
+          <div className="loader-container">
+            <div className="spinner"></div>
+            <p>Submitting form... Please wait.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Success Dialog */}
+      {showSuccessDialog && (
+        <div className="dialog-overlay">
+          <div className="dialog-container">
+            <div className="success-icon">✓</div>
+            <h3>Form Submitted Successfully!</h3>
+            <p>Your employee registration form has been submitted successfully.</p>
+            <button 
+              onClick={() => setShowSuccessDialog(false)} 
+              className="dialog-close-btn"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="employee-form">
         <h2 className="form-title">Employee Registration Form</h2>
 
@@ -913,7 +959,7 @@ const handleWorkExperienceChange = (id, field, value) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor={`degree-${education.id}`}>Degree/Qualification *</label>
+                <label htmlFor={`degree-${education.id}`}>Degree/Qualification</label>
                 <input
                   id={`degree-${education.id}`}
                   type="text"
@@ -922,12 +968,11 @@ const handleWorkExperienceChange = (id, field, value) => {
                   onChange={(e) =>
                     handleEducationChange(education.id, "degree", e.target.value)
                   }
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor={`institution-${education.id}`}>Institution/University *</label>
+                <label htmlFor={`institution-${education.id}`}>Institution/University</label>
                 <input
                   id={`institution-${education.id}`}
                   type="text"
@@ -936,12 +981,11 @@ const handleWorkExperienceChange = (id, field, value) => {
                   onChange={(e) =>
                     handleEducationChange(education.id, "institution", e.target.value)
                   }
-                  required
                 />
               </div>
 
                   <div className="form-group">
-                    <label htmlFor={`fieldOfStudy-${education.id}`}>Field of Study *</label>
+                    <label htmlFor={`fieldOfStudy-${education.id}`}>Field of Study</label>
                     <input
                       id={`fieldOfStudy-${education.id}`}
                       type="text"
@@ -950,13 +994,12 @@ const handleWorkExperienceChange = (id, field, value) => {
                       onChange={(e) =>
                         handleEducationChange(education.id, "fieldOfStudy", e.target.value)
                       }
-                      required
                     />
                   </div>
     
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor={`yearOfPassing-${education.id}`}>Year of Passing *</label>
+                      <label htmlFor={`yearOfPassing-${education.id}`}>Year of Passing</label>
                       <input
                         id={`yearOfPassing-${education.id}`}
                         type="number"
@@ -967,12 +1010,11 @@ const handleWorkExperienceChange = (id, field, value) => {
                         }
                         min="1950"
                         max="2030"
-                        required
                       />
                     </div>
     
                     <div className="form-group">
-                      <label htmlFor={`grade-${education.id}`}>Grade/Percentage *</label>
+                      <label htmlFor={`grade-${education.id}`}>Grade/Percentage</label>
                       <input
                         id={`grade-${education.id}`}
                         type="text"
@@ -981,13 +1023,12 @@ const handleWorkExperienceChange = (id, field, value) => {
                         onChange={(e) =>
                           handleEducationChange(education.id, "grade", e.target.value)
                         }
-                        required
                       />
                     </div>
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor={`certificate-${education.id}`}>Certificate/Marksheet *</label>
+                    <label htmlFor={`certificate-${education.id}`}>Certificate/Marksheet</label>
                     <input
                       id={`certificate-${education.id}`}
                       type="file"
@@ -995,7 +1036,6 @@ const handleWorkExperienceChange = (id, field, value) => {
                       onChange={(e) =>
                         handleEducationChange(education.id, "certificate", e.target.files[0])
                       }
-                      required
                     />
                     {education.certificate && (
                       <p className="file-name">Selected: {education.certificate.name}</p>
@@ -1269,7 +1309,7 @@ const handleWorkExperienceChange = (id, field, value) => {
           <h3 className="section-title">Guardian Information</h3>
           
           <div className="form-group">
-            <label htmlFor="guardianName">Guardian Name *</label>
+            <label htmlFor="guardianName">Guardian Name</label>
             <input
               id="guardianName"
               name="guardianName"
@@ -1277,7 +1317,6 @@ const handleWorkExperienceChange = (id, field, value) => {
               placeholder="Enter guardian name"
               value={form.guardianName}
               onChange={handleChange}
-              required
             />
           </div>
 
@@ -1452,13 +1491,12 @@ const handleWorkExperienceChange = (id, field, value) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="bankProof">Bank Proof (Cancelled Cheque / Passbook) *</label>
+            <label htmlFor="bankProof">Bank Proof (Cancelled Cheque / Passbook)</label>
             <input
               id="bankProof"
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={(e) => handleDocumentChange("bankProof", e.target.files[0])}
-              required
             />
             {documents.bankProof && (
               <p className="file-name">Selected: {documents.bankProof.name}</p>
