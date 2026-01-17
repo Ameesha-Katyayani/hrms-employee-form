@@ -1541,7 +1541,7 @@ const handleWorkExperienceChange = (id, field, value) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="panNumber">PAN Number *</label>
+            <label htmlFor="panNumber">PAN Number</label>
             <input
               id="panNumber"
               name="panNumber"
@@ -1552,18 +1552,16 @@ const handleWorkExperienceChange = (id, field, value) => {
               maxLength="10"
               pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
               style={{ textTransform: 'uppercase' }}
-              required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="panCard">Upload PAN Card *</label>
+            <label htmlFor="panCard">Upload PAN Card</label>
             <input
               id="panCard"
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={(e) => handleDocumentChange("panCard", e.target.files[0])}
-              required
             />
             <small className="file-hint">Upload PDF, JPG, or PNG (Max 5MB)</small>
             {documents.panCard && (
