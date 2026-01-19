@@ -12,8 +12,7 @@ export default function EmployeeForm() {
     maritalStatus: "",
     bloodGroup: "",
     
-    // Contact Information
-    phone: "",
+  
     mobile: "",
     alternatePhone: "",
     
@@ -184,7 +183,7 @@ const handleSubmit = async (e) => {
   e.preventDefault();
 
   // ✅ REQUIRED FIELD CHECK (basic)
-  if (!form.name || !form.email || !form.dateOfBirth || !form.phone || !form.mobile) {
+  if (!form.name || !form.email || !form.dateOfBirth  || !form.mobile) {
     alert("Please fill all required fields marked with *");
     return;
   }
@@ -281,8 +280,6 @@ const handleSubmit = async (e) => {
           date_of_birth: form.dateOfBirth,
           marital_status: form.maritalStatus,
           blood_group: form.bloodGroup,
-
-          phone: form.phone,
           mobile: form.mobile,
           alternate_phone: form.alternatePhone || null,
 
@@ -522,7 +519,7 @@ const handleSubmit = async (e) => {
       maritalStatus: "",
       bloodGroup: "",
 
-      phone: "",
+ 
       mobile: "",
       alternatePhone: "",
 
@@ -767,18 +764,7 @@ const handleSubmit = async (e) => {
           </div>
 
           <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="phone">Phone Number *</label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                placeholder="Enter phone number"
-                value={form.phone}
-                onChange={handleChange}
-                required
-              />
-            </div>
+            
 
             <div className="form-group">
               <label htmlFor="mobile">Mobile Number *</label>
