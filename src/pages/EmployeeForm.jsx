@@ -180,271 +180,433 @@ const handleWorkExperienceChange = (id, field, value) => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      // Show loading state
-      setIsSubmitting(true);
+  // ✅ REQUIRED FIELD CHECK (basic)
+  if (!form.name || !form.email || !form.dateOfBirth || !form.phone || !form.mobile) {
+    alert("Please fill all required fields marked with *");
+    return;
+  }
 
-      // 1. Upload Employee Photo
-      let photoUrl = null;
-      if (documents.photo) {
-        const photoPath = `photos/${Date.now()}_${documents.photo.name}`;
-        photoUrl = await uploadFile(documents.photo, 'employee-documents', photoPath);
-      }
+  // ✅ Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(form.email)) {
+    alert("Please enter a valid email address");
+    return;
+  }
 
-      // 2. Upload Aadhaar card
-      let aadhaarCardUrl = null;
-      if (documents.aadhaarCard) {
-        const aadhaarPath = `aadhaar/${Date.now()}_${documents.aadhaarCard.name}`;
-        aadhaarCardUrl = await uploadFile(documents.aadhaarCard, 'employee-documents', aadhaarPath);
-      }
+  // ✅ Required documents checks
+  if (!documents.photo) {
+    alert("Please upload your photo");
+    return;
+  }
+  if (!documents.aadhaarCard) {
+    alert("Please upload your Aadhaar card");
+    return;
+  }
 
-      // 3. Upload PAN card
-      let panCardUrl = null;
-      if (documents.panCard) {
-        const panPath = `pan/${Date.now()}_${documents.panCard.name}`;
-        panCardUrl = await uploadFile(documents.panCard, 'employee-documents', panPath);
-      }
+  // ✅ 10th and 12th mandatory
+  if (!documents.tenthMarksheet) {
+    alert("Please upload your 10th marksheet");
+    return;
+  }
+  if (!documents.twelfthMarksheet) {
+    alert("Please upload your 12th marksheet");
+    return;
+  }
 
-      // 4. Upload Bank Proof
-      let bankProofUrl = null;
-      if (documents.bankProof) {
-        const bankPath = `bank-proof/${Date.now()}_${documents.bankProof.name}`;
-        bankProofUrl = await uploadFile(documents.bankProof, 'employee-documents', bankPath);
-      }
+  // ✅ Katyayani letter required if user selected YES
+  if (form.hasKatyayaniLetter === "yes" && !documents.katyayaniLetter) {
+    alert("Please upload Katyayani Offer/Appointment Letter");
+    return;
+  }
 
-      // 4. Upload 10th Marksheet
-      let tenthMarksheetUrl = null;
-      if (documents.tenthMarksheet) {
-        const tenthPath = `10th-marksheets/${Date.now()}_${documents.tenthMarksheet.name}`;
-        tenthMarksheetUrl = await uploadFile(documents.tenthMarksheet, 'employee-documents', tenthPath);
-      }
+  try {
+    setIsSubmitting(true);
 
-      // 5. Upload 12th Marksheet
-      let twelfthMarksheetUrl = null;
-      if (documents.twelfthMarksheet) {
-        const twelfthPath = `12th-marksheets/${Date.now()}_${documents.twelfthMarksheet.name}`;
-        twelfthMarksheetUrl = await uploadFile(documents.twelfthMarksheet, 'employee-documents', twelfthPath);
-      }
+    // ✅ CLEAN DATA (important fix)
+    const cleanEmail = form.email.trim().toLowerCase();
+    const cleanAadhaar = form.aadhaarNumber.trim();
+    const cleanPan = form.panNumber ? form.panNumber.trim().toUpperCase() : null;
 
-      // 6. Upload Katyayani Letter if provided
-      let katyayaniLetterUrl = null;
-      if (documents.katyayaniLetter) {
-        const letterPath = `katyayani-letters/${Date.now()}_${documents.katyayaniLetter.name}`;
-        katyayaniLetterUrl = await uploadFile(documents.katyayaniLetter, 'employee-documents', letterPath);
-      }
+    // ✅ CHECK DUPLICATES BEFORE UPLOAD (BIG FIX)
+    const { data: existingAadhaar } = await supabase
+      .from("employees")
+      .select("id")
+      .eq("aadhaar_number", cleanAadhaar)
+      .maybeSingle();
 
-      // 7. Insert employee data
-      const { data: employeeData, error: employeeError } = await supabase
-        .from('employees')
-        .insert([
-          {
-            name: form.name,
-            email: form.email,
-            alternate_email: form.alternateEmail,
-            date_of_birth: form.dateOfBirth,
-            marital_status: form.maritalStatus,
-            blood_group: form.bloodGroup,
-            photo_url: photoUrl,
-            phone: form.phone,
-            mobile: form.mobile,
-            alternate_phone: form.alternatePhone,
-            current_address: form.currentAddress,
-            current_city: form.currentCity,
-            current_state: form.currentState,
-            current_pincode: form.currentPincode,
-            permanent_address: form.permanentAddress,
-            permanent_city: form.permanentCity,
-            permanent_state: form.permanentState,
-            permanent_pincode: form.permanentPincode,
-            father_name: form.fatherName,
-            mother_name: form.motherName,
-            spouse_name: form.spouseName || null,
-            number_of_children: parseInt(form.numberOfChildren) || 0,
-            guardian_name: form.guardianName,
-            guardian_relation: form.guardianRelation,
-            guardian_phone: form.guardianPhone,
-            guardian_address: form.guardianAddress,
-            emergency_contact_name: form.emergencyContactName,
-            emergency_contact_relation: form.emergencyContactRelation,
-            emergency_contact_phone: form.emergencyContactPhone,
-            bank_name: form.bankName,
-            account_number: form.accountNumber,
-            ifsc_code: form.ifscCode,
-            account_holder_name: form.accountHolderName,
-            branch_name: form.branchName,
-            bank_proof_url: bankProofUrl,
-            tenth_board: form.tenth_board,
-            tenth_school: form.tenth_school,
-            tenth_year: parseInt(form.tenth_year),
-            tenth_percentage: form.tenth_percentage,
-            tenth_marksheet_url: tenthMarksheetUrl,
-            twelfth_board: form.twelfth_board,
-            twelfth_school: form.twelfth_school,
-            twelfth_year: parseInt(form.twelfth_year),
-            twelfth_percentage: form.twelfth_percentage,
-            twelfth_marksheet_url: twelfthMarksheetUrl,
-            aadhaar_number: form.aadhaarNumber,
-            aadhaar_card_url: aadhaarCardUrl,
-            pan_number: form.panNumber,
-            pan_card_url: panCardUrl,
-            has_katyayani_letter: form.hasKatyayaniLetter,
-            katyayani_letter_url: katyayaniLetterUrl,
-          }
-        ])
-        .select();
-
-      if (employeeError) throw employeeError;
-
-      const employeeId = employeeData[0].id;
-
-      // 4. Upload education certificates and insert records
-      for (const edu of educationList) {
-        let certificateUrl = null;
-        
-        if (edu.certificate) {
-          const certPath = `education-certificates/${employeeId}/${Date.now()}_${edu.certificate.name}`;
-          certificateUrl = await uploadFile(edu.certificate, 'employee-documents', certPath);
-        }
-
-        const { error: educationError } = await supabase
-          .from('education')
-          .insert([{
-            employee_id: employeeId,
-            degree: edu.degree,
-            institution: edu.institution,
-            field_of_study: edu.fieldOfStudy,
-            year_of_passing: parseInt(edu.yearOfPassing),
-            grade: edu.grade,
-            certificate_url: certificateUrl,
-          }]);
-
-        if (educationError) throw educationError;
-      }
-
-      // 5. Upload work experience documents and insert records
-      for (const exp of workExperienceList) {
-        // Skip empty work experience entries
-        if (!exp.companyName || !exp.designation) {
-          continue;
-        }
-
-        let salarySlipUrl = null;
-        let relievingLetterUrl = null;
-        let experienceLetterUrl = null;
-
-        if (exp.salarySlip) {
-          const salaryPath = `salary-slips/${employeeId}/${Date.now()}_${exp.salarySlip.name}`;
-          salarySlipUrl = await uploadFile(exp.salarySlip, 'employee-documents', salaryPath);
-        }
-
-        if (exp.relievingLetter) {
-          const relievingPath = `relieving-letters/${employeeId}/${Date.now()}_${exp.relievingLetter.name}`;
-          relievingLetterUrl = await uploadFile(exp.relievingLetter, 'employee-documents', relievingPath);
-        }
-
-        if (exp.experienceLetter) {
-          const experiencePath = `experience-letters/${employeeId}/${Date.now()}_${exp.experienceLetter.name}`;
-          experienceLetterUrl = await uploadFile(exp.experienceLetter, 'employee-documents', experiencePath);
-        }
-
-        const { error: workError } = await supabase
-          .from('work_experience')
-          .insert([
-            {
-              employee_id: employeeId,
-              company_name: exp.companyName,
-              designation: exp.designation,
-              from_date: exp.fromDate,
-              to_date: exp.toDate,
-              salary: exp.salary,
-              salary_slip_url: salarySlipUrl,
-              relieving_letter_url: relievingLetterUrl,
-              experience_letter_url: experienceLetterUrl,
-            }
-          ]);
-
-        if (workError) throw workError;
-      }
-
-      // Show success dialog
+    if (existingAadhaar) {
       setIsSubmitting(false);
-      setShowSuccessDialog(true);
-      
-      // Reset form
-      setForm({
-        name: "",
-        email: "",
-        alternateEmail: "",
-        dateOfBirth: "",
-        maritalStatus: "",
-        bloodGroup: "",
-        phone: "",
-        mobile: "",
-        alternatePhone: "",
-        currentAddress: "",
-        currentCity: "",
-        currentState: "",
-        currentPincode: "",
-        permanentAddress: "",
-        permanentCity: "",
-        permanentState: "",
-        permanentPincode: "",
-        fatherName: "",
-        motherName: "",
-        spouseName: "",
-        numberOfChildren: "",
-        guardianName: "",
-        guardianRelation: "",
-        guardianPhone: "",
-        guardianAddress: "",
-        emergencyContactName: "",
-        emergencyContactRelation: "",
-        emergencyContactPhone: "",
-        bankName: "",
-        accountNumber: "",
-        ifscCode: "",
-        accountHolderName: "",
-        branchName: "",
-        aadhaarNumber: "",
-        panNumber: "",
-      });
-      setDocuments({
-        aadhaarCard: null,
-        panCard: null,
-      });
-      setEducationList([
-        {
-          id: 1,
-          degree: "",
-          institution: "",
-          fieldOfStudy: "",
-          yearOfPassing: "",
-          grade: "",
-        },
-      ]);
-    } catch (error) {
+      alert("This Aadhaar number is already registered.");
+      return;
+    }
+
+    const { data: existingEmail } = await supabase
+      .from("employees")
+      .select("id")
+      .eq("email", cleanEmail)
+      .maybeSingle();
+
+    if (existingEmail) {
       setIsSubmitting(false);
-      console.error(error);
-      
-      // Handle specific errors
-      if (error.code === '23505') {
-        if (error.message.includes('aadhaar_number')) {
-          alert("This Aadhaar number is already registered. Please check the number or contact support.");
-        } else if (error.message.includes('pan_number')) {
-          alert("This PAN number is already registered. Please check the number or contact support.");
-        } else if (error.message.includes('email')) {
-          alert("This email is already registered. Please use a different email.");
-        } else {
-          alert("This record already exists in the system. Please check your details.");
-        }
-      } else {
-        alert("Error submitting form. Please try again.");
+      alert("This Email is already registered.");
+      return;
+    }
+
+    if (cleanPan) {
+      const { data: existingPan } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("pan_number", cleanPan)
+        .maybeSingle();
+
+      if (existingPan) {
+        setIsSubmitting(false);
+        alert("This PAN number is already registered.");
+        return;
       }
     }
-  };
+
+    // ✅ STEP 1: INSERT EMPLOYEE FIRST (NO FILE UPLOAD YET)
+    const { data: employeeData, error: employeeError } = await supabase
+      .from("employees")
+      .insert([
+        {
+          name: form.name,
+          email: cleanEmail,
+          alternate_email: form.alternateEmail || null,
+
+          date_of_birth: form.dateOfBirth,
+          marital_status: form.maritalStatus,
+          blood_group: form.bloodGroup,
+
+          phone: form.phone,
+          mobile: form.mobile,
+          alternate_phone: form.alternatePhone || null,
+
+          current_address: form.currentAddress,
+          current_city: form.currentCity,
+          current_state: form.currentState,
+          current_pincode: form.currentPincode,
+
+          permanent_address: form.permanentAddress,
+          permanent_city: form.permanentCity,
+          permanent_state: form.permanentState,
+          permanent_pincode: form.permanentPincode,
+
+          father_name: form.fatherName,
+          mother_name: form.motherName,
+
+          spouse_name: form.spouseName || null,
+          number_of_children: form.numberOfChildren ? parseInt(form.numberOfChildren) : 0,
+
+          guardian_name: form.guardianName || null,
+          guardian_relation: form.guardianRelation,
+          guardian_phone: form.guardianPhone,
+          guardian_address: form.guardianAddress,
+
+          emergency_contact_name: form.emergencyContactName,
+          emergency_contact_relation: form.emergencyContactRelation,
+          emergency_contact_phone: form.emergencyContactPhone,
+
+          bank_name: form.bankName,
+          account_number: form.accountNumber,
+          ifsc_code: form.ifscCode,
+          account_holder_name: form.accountHolderName,
+          branch_name: form.branchName,
+
+          tenth_board: form.tenth_board,
+          tenth_school: form.tenth_school,
+          tenth_year: form.tenth_year ? parseInt(form.tenth_year) : null,
+          tenth_percentage: form.tenth_percentage,
+
+          twelfth_board: form.twelfth_board,
+          twelfth_school: form.twelfth_school,
+          twelfth_year: form.twelfth_year ? parseInt(form.twelfth_year) : null,
+          twelfth_percentage: form.twelfth_percentage,
+
+          aadhaar_number: cleanAadhaar,
+          pan_number: cleanPan,
+
+          has_katyayani_letter: form.hasKatyayaniLetter,
+        },
+      ])
+      .select()
+      .single();
+
+    if (employeeError) throw employeeError;
+
+    const employeeId = employeeData.id;
+
+    // ✅ STEP 2: UPLOAD FILES AFTER EMPLOYEE CREATED
+    const uploadPromises = [];
+
+    let photoUrl = null;
+    let aadhaarCardUrl = null;
+    let panCardUrl = null;
+    let bankProofUrl = null;
+    let tenthMarksheetUrl = null;
+    let twelfthMarksheetUrl = null;
+    let katyayaniLetterUrl = null;
+
+    if (documents.photo) {
+      const photoPath = `photos/${employeeId}/${Date.now()}_${documents.photo.name}`;
+      uploadPromises.push(
+        uploadFile(documents.photo, "employee-documents", photoPath).then((url) => {
+          photoUrl = url;
+        })
+      );
+    }
+
+    if (documents.aadhaarCard) {
+      const aadhaarPath = `aadhaar/${employeeId}/${Date.now()}_${documents.aadhaarCard.name}`;
+      uploadPromises.push(
+        uploadFile(documents.aadhaarCard, "employee-documents", aadhaarPath).then((url) => {
+          aadhaarCardUrl = url;
+        })
+      );
+    }
+
+    if (documents.panCard) {
+      const panPath = `pan/${employeeId}/${Date.now()}_${documents.panCard.name}`;
+      uploadPromises.push(
+        uploadFile(documents.panCard, "employee-documents", panPath).then((url) => {
+          panCardUrl = url;
+        })
+      );
+    }
+
+    if (documents.bankProof) {
+      const bankPath = `bank-proof/${employeeId}/${Date.now()}_${documents.bankProof.name}`;
+      uploadPromises.push(
+        uploadFile(documents.bankProof, "employee-documents", bankPath).then((url) => {
+          bankProofUrl = url;
+        })
+      );
+    }
+
+    if (documents.tenthMarksheet) {
+      const tenthPath = `10th-marksheets/${employeeId}/${Date.now()}_${documents.tenthMarksheet.name}`;
+      uploadPromises.push(
+        uploadFile(documents.tenthMarksheet, "employee-documents", tenthPath).then((url) => {
+          tenthMarksheetUrl = url;
+        })
+      );
+    }
+
+    if (documents.twelfthMarksheet) {
+      const twelfthPath = `12th-marksheets/${employeeId}/${Date.now()}_${documents.twelfthMarksheet.name}`;
+      uploadPromises.push(
+        uploadFile(documents.twelfthMarksheet, "employee-documents", twelfthPath).then((url) => {
+          twelfthMarksheetUrl = url;
+        })
+      );
+    }
+
+    if (documents.katyayaniLetter) {
+      const letterPath = `katyayani-letters/${employeeId}/${Date.now()}_${documents.katyayaniLetter.name}`;
+      uploadPromises.push(
+        uploadFile(documents.katyayaniLetter, "employee-documents", letterPath).then((url) => {
+          katyayaniLetterUrl = url;
+        })
+      );
+    }
+
+    // ✅ Upload all in parallel
+    await Promise.all(uploadPromises);
+
+    // ✅ STEP 3: UPDATE EMPLOYEE WITH FILE URLS
+    const { error: updateError } = await supabase
+      .from("employees")
+      .update({
+        photo_url: photoUrl,
+        aadhaar_card_url: aadhaarCardUrl,
+        pan_card_url: panCardUrl,
+        bank_proof_url: bankProofUrl,
+        tenth_marksheet_url: tenthMarksheetUrl,
+        twelfth_marksheet_url: twelfthMarksheetUrl,
+        katyayani_letter_url: katyayaniLetterUrl,
+      })
+      .eq("id", employeeId);
+
+    if (updateError) throw updateError;
+
+    // ✅ STEP 4: EDUCATION TABLE INSERT
+    for (const edu of educationList) {
+      // Skip fully empty education
+      if (!edu.degree && !edu.institution) continue;
+
+      let certificateUrl = null;
+
+      if (edu.certificate) {
+        const certPath = `education-certificates/${employeeId}/${Date.now()}_${edu.certificate.name}`;
+        certificateUrl = await uploadFile(edu.certificate, "employee-documents", certPath);
+      }
+
+      const { error: eduError } = await supabase.from("education").insert([
+        {
+          employee_id: employeeId,
+          degree: edu.degree || null,
+          institution: edu.institution || null,
+          field_of_study: edu.fieldOfStudy || null,
+          year_of_passing: edu.yearOfPassing ? parseInt(edu.yearOfPassing) : null,
+          grade: edu.grade || null,
+          certificate_url: certificateUrl,
+        },
+      ]);
+
+      if (eduError) throw eduError;
+    }
+
+    // ✅ STEP 5: WORK EXPERIENCE INSERT
+    for (const exp of workExperienceList) {
+      if (!exp.companyName || !exp.designation) continue;
+
+      let salarySlipUrl = null;
+      let relievingLetterUrl = null;
+      let experienceLetterUrl = null;
+
+      if (exp.salarySlip) {
+        salarySlipUrl = await uploadFile(
+          exp.salarySlip,
+          "employee-documents",
+          `salary-slips/${employeeId}/${Date.now()}_${exp.salarySlip.name}`
+        );
+      }
+
+      if (exp.relievingLetter) {
+        relievingLetterUrl = await uploadFile(
+          exp.relievingLetter,
+          "employee-documents",
+          `relieving-letters/${employeeId}/${Date.now()}_${exp.relievingLetter.name}`
+        );
+      }
+
+      if (exp.experienceLetter) {
+        experienceLetterUrl = await uploadFile(
+          exp.experienceLetter,
+          "employee-documents",
+          `experience-letters/${employeeId}/${Date.now()}_${exp.experienceLetter.name}`
+        );
+      }
+
+      const { error: expError } = await supabase.from("work_experience").insert([
+        {
+          employee_id: employeeId,
+          company_name: exp.companyName,
+          designation: exp.designation,
+          from_date: exp.fromDate || null,
+          to_date: exp.toDate || null,
+          salary: exp.salary || null,
+          salary_slip_url: salarySlipUrl,
+          relieving_letter_url: relievingLetterUrl,
+          experience_letter_url: experienceLetterUrl,
+        },
+      ]);
+
+      if (expError) throw expError;
+    }
+
+    // ✅ DONE
+    setIsSubmitting(false);
+    setShowSuccessDialog(true);
+
+    // ✅ RESET EVERYTHING
+    setForm({
+      name: "",
+      email: "",
+      alternateEmail: "",
+      dateOfBirth: "",
+      maritalStatus: "",
+      bloodGroup: "",
+
+      phone: "",
+      mobile: "",
+      alternatePhone: "",
+
+      currentAddress: "",
+      currentCity: "",
+      currentState: "",
+      currentPincode: "",
+
+      permanentAddress: "",
+      permanentCity: "",
+      permanentState: "",
+      permanentPincode: "",
+
+      fatherName: "",
+      motherName: "",
+      spouseName: "",
+      numberOfChildren: "",
+
+      guardianName: "",
+      guardianRelation: "",
+      guardianPhone: "",
+      guardianAddress: "",
+
+      emergencyContactName: "",
+      emergencyContactRelation: "",
+      emergencyContactPhone: "",
+
+      bankName: "",
+      accountNumber: "",
+      ifscCode: "",
+      accountHolderName: "",
+      branchName: "",
+
+      tenth_board: "",
+      tenth_school: "",
+      tenth_year: "",
+      tenth_percentage: "",
+
+      twelfth_board: "",
+      twelfth_school: "",
+      twelfth_year: "",
+      twelfth_percentage: "",
+
+      aadhaarNumber: "",
+      panNumber: "",
+      hasKatyayaniLetter: "",
+    });
+
+    setDocuments({
+      aadhaarCard: null,
+      panCard: null,
+      bankProof: null,
+      tenthMarksheet: null,
+      twelfthMarksheet: null,
+      katyayaniLetter: null,
+      photo: null,
+    });
+
+    setEducationList([
+      {
+        id: 1,
+        degree: "",
+        institution: "",
+        fieldOfStudy: "",
+        yearOfPassing: "",
+        grade: "",
+        certificate: null,
+      },
+    ]);
+
+    setWorkExperienceList([]);
+
+  } catch (error) {
+    setIsSubmitting(false);
+    console.error("Form submission error:", error);
+
+    if (error.code === "23505") {
+      alert("Duplicate record exists (Aadhaar/PAN/Email already registered).");
+    } else {
+      alert(error.message || "Error submitting form.");
+    }
+  }
+};
+
 
   const copyToCurrentAddress = () => {
     setForm({
