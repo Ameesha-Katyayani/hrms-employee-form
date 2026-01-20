@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase, uploadFile } from "../lib/supabase";
 import "./EmployeeForm.css";
 
 export default function EmployeeForm() {
+  const FORM_STORAGE_KEY = "employee-form-data-v1";
+  const EDUCATION_STORAGE_KEY = "employee-education-list-v1";
+  const WORK_STORAGE_KEY = "employee-work-list-v1";
+
   const [form, setForm] = useState({
     // Personal Information
     name: "",
@@ -101,6 +105,54 @@ export default function EmployeeForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
+  // Load saved draft on first render
+  useEffect(() => {
+    try {
+      const savedForm = localStorage.getItem(FORM_STORAGE_KEY);
+      const savedEducation = localStorage.getItem(EDUCATION_STORAGE_KEY);
+      const savedWork = localStorage.getItem(WORK_STORAGE_KEY);
+
+      if (savedForm) {
+        setForm((prev) => ({ ...prev, ...JSON.parse(savedForm) }));
+      }
+      if (savedEducation) {
+        const parsedEdu = JSON.parse(savedEducation);
+        if (Array.isArray(parsedEdu) && parsedEdu.length) setEducationList(parsedEdu);
+      }
+      if (savedWork) {
+        const parsedWork = JSON.parse(savedWork);
+        if (Array.isArray(parsedWork) && parsedWork.length) setWorkExperienceList(parsedWork);
+      }
+    } catch (err) {
+      console.error("Error loading saved draft", err);
+    }
+  }, []);
+
+  // Persist drafts when fields change (files are not persisted)
+  useEffect(() => {
+    try {
+      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(form));
+    } catch (err) {
+      console.error("Error saving form draft", err);
+    }
+  }, [form]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(EDUCATION_STORAGE_KEY, JSON.stringify(educationList));
+    } catch (err) {
+      console.error("Error saving education draft", err);
+    }
+  }, [educationList]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(WORK_STORAGE_KEY, JSON.stringify(workExperienceList));
+    } catch (err) {
+      console.error("Error saving work draft", err);
+    }
+  }, [workExperienceList]);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -188,10 +240,35 @@ const handleSubmit = async (e) => {
     return;
   }
 
+  // ✅ Additional required checks that cause DB errors if missing
+  if (!form.panNumber?.trim()) {
+    alert("PAN number is required");
+    return;
+  }
+
+  if (!form.guardianName?.trim() || !form.guardianRelation || !form.guardianPhone || !form.guardianAddress?.trim()) {
+    alert("Please complete guardian details (name, relation, phone, address)");
+    return;
+  }
+
   // ✅ Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(form.email)) {
     alert("Please enter a valid email address");
+    return;
+  }
+
+  // ✅ PROPER AADHAAR + PAN VALIDATION
+  const cleanAadhaar = form.aadhaarNumber.trim();
+  const cleanPan = form.panNumber.trim().toUpperCase();
+
+  if (!/^\d{12}$/.test(cleanAadhaar)) {
+    alert("Aadhaar must be 12 digits");
+    return;
+  }
+
+  if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(cleanPan)) {
+    alert("PAN must be valid like ABCDE1234F");
     return;
   }
 
@@ -226,8 +303,12 @@ const handleSubmit = async (e) => {
 
     // ✅ CLEAN DATA (important fix)
     const cleanEmail = form.email.trim().toLowerCase();
-    const cleanAadhaar = form.aadhaarNumber.trim();
-    const cleanPan = form.panNumber ? form.panNumber.trim().toUpperCase() : null;
+    const cleanMobile = form.mobile.trim();
+
+    // ✅ Helper to convert empty strings to null for optional fields
+    const emptyToNull = (v) => (v?.trim?.() ? v.trim() : null);
+
+    console.log("EMPLOYEE PAYLOAD", form);
 
     // ✅ CHECK DUPLICATES BEFORE UPLOAD (BIG FIX)
     const { data: existingAadhaar } = await supabase
@@ -275,13 +356,14 @@ const handleSubmit = async (e) => {
         {
           name: form.name,
           email: cleanEmail,
-          alternate_email: form.alternateEmail || null,
+          alternate_email: emptyToNull(form.alternateEmail),
 
           date_of_birth: form.dateOfBirth,
           marital_status: form.maritalStatus,
           blood_group: form.bloodGroup,
-          mobile: form.mobile,
-          alternate_phone: form.alternatePhone || null,
+          phone: cleanMobile,
+          mobile: cleanMobile,
+          alternate_phone: emptyToNull(form.alternatePhone),
 
           current_address: form.currentAddress,
           current_city: form.currentCity,
@@ -296,10 +378,10 @@ const handleSubmit = async (e) => {
           father_name: form.fatherName,
           mother_name: form.motherName,
 
-          spouse_name: form.spouseName || null,
+          spouse_name: emptyToNull(form.spouseName),
           number_of_children: form.numberOfChildren ? parseInt(form.numberOfChildren) : 0,
 
-          guardian_name: form.guardianName || null,
+          guardian_name: emptyToNull(form.guardianName),
           guardian_relation: form.guardianRelation,
           guardian_phone: form.guardianPhone,
           guardian_address: form.guardianAddress,
@@ -333,7 +415,12 @@ const handleSubmit = async (e) => {
       .select()
       .single();
 
-    if (employeeError) throw employeeError;
+    if (employeeError) {
+      console.error("EMPLOYEE INSERT ERROR:", employeeError);
+      setIsSubmitting(false);
+      alert(employeeError.message || "Error inserting employee record");
+      return;
+    }
 
     const employeeId = employeeData.id;
 
@@ -430,10 +517,16 @@ const handleSubmit = async (e) => {
 
     if (updateError) throw updateError;
 
-    // ✅ STEP 4: EDUCATION TABLE INSERT
+    // ✅ STEP 4: EDUCATION TABLE INSERT (only fully filled entries)
     for (const edu of educationList) {
-      // Skip fully empty education
-      if (!edu.degree && !edu.institution) continue;
+      const hasAnyEduField = edu.degree || edu.institution || edu.fieldOfStudy || edu.yearOfPassing || edu.grade;
+      if (!hasAnyEduField) continue;
+
+      if (!edu.degree || !edu.institution || !edu.fieldOfStudy || !edu.yearOfPassing || !edu.grade) {
+        setIsSubmitting(false);
+        alert("Please complete all education fields for each added education entry.");
+        return;
+      }
 
       let certificateUrl = null;
 
@@ -457,9 +550,16 @@ const handleSubmit = async (e) => {
       if (eduError) throw eduError;
     }
 
-    // ✅ STEP 5: WORK EXPERIENCE INSERT
+    // ✅ STEP 5: WORK EXPERIENCE INSERT (only fully filled entries)
     for (const exp of workExperienceList) {
-      if (!exp.companyName || !exp.designation) continue;
+      const hasAnyWorkField = exp.companyName || exp.designation || exp.fromDate || exp.toDate || exp.salary;
+      if (!hasAnyWorkField) continue;
+
+      if (!exp.companyName || !exp.designation || !exp.fromDate || !exp.toDate || !exp.salary) {
+        setIsSubmitting(false);
+        alert("Please complete all work experience fields (company, designation, from, to, salary) for each added entry.");
+        return;
+      }
 
       let salarySlipUrl = null;
       let relievingLetterUrl = null;
@@ -494,9 +594,9 @@ const handleSubmit = async (e) => {
           employee_id: employeeId,
           company_name: exp.companyName,
           designation: exp.designation,
-          from_date: exp.fromDate || null,
-          to_date: exp.toDate || null,
-          salary: exp.salary || null,
+          from_date: exp.fromDate,
+          to_date: exp.toDate,
+          salary: exp.salary,
           salary_slip_url: salarySlipUrl,
           relieving_letter_url: relievingLetterUrl,
           experience_letter_url: experienceLetterUrl,
@@ -567,6 +667,11 @@ const handleSubmit = async (e) => {
       panNumber: "",
       hasKatyayaniLetter: "",
     });
+
+    // Clear saved drafts after successful submit
+    localStorage.removeItem(FORM_STORAGE_KEY);
+    localStorage.removeItem(EDUCATION_STORAGE_KEY);
+    localStorage.removeItem(WORK_STORAGE_KEY);
 
     setDocuments({
       aadhaarCard: null,
@@ -1465,6 +1570,7 @@ const handleSubmit = async (e) => {
               placeholder="Enter guardian name"
               value={form.guardianName}
               onChange={handleChange}
+              required
             />
           </div>
 
@@ -1700,6 +1806,7 @@ const handleSubmit = async (e) => {
               maxLength="10"
               pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
               style={{ textTransform: 'uppercase' }}
+              required
             />
           </div>
 
