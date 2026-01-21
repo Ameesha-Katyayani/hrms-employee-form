@@ -104,6 +104,7 @@ export default function EmployeeForm() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [lastSubmittedName, setLastSubmittedName] = useState("");
 
   // Load saved draft on first render
   useEffect(() => {
@@ -608,6 +609,7 @@ const handleSubmit = async (e) => {
 
     // ✅ DONE
     setIsSubmitting(false);
+    setLastSubmittedName(form.name); // Store the submitted name
     setShowSuccessDialog(true);
 
     // ✅ RESET EVERYTHING
@@ -723,7 +725,7 @@ const handleSubmit = async (e) => {
   return (
     <div className="form-container">
       {/* Loading Overlay */}
-      {isSubmitting && (
+      {isSubmitting && !showSuccessDialog && (
         <div className="loading-overlay">
           <div className="loader-container">
             <div className="spinner"></div>
@@ -738,12 +740,17 @@ const handleSubmit = async (e) => {
           <div className="dialog-container">
             <div className="success-icon">✓</div>
             <h3>Form Submitted Successfully!</h3>
-            <p>Your employee registration form has been submitted successfully.</p>
+            <p>
+              <strong>{lastSubmittedName}</strong>'s employee registration form has been submitted successfully.
+            </p>
+            <p style={{ fontSize: "14px", color: "#666", marginTop: "10px" }}>
+              The form is now reset and ready for a new entry.
+            </p>
             <button 
               onClick={() => setShowSuccessDialog(false)} 
               className="dialog-close-btn"
             >
-              Close
+              Fill Another Form
             </button>
           </div>
         </div>
