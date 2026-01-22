@@ -851,12 +851,12 @@ const handleSubmit = async (e) => {
           <h3 className="section-title">Contact Information</h3>
           
           <div className="form-group">
-            <label htmlFor="email">Email *</label>
+              <label htmlFor="email">Company Email *</label>
             <input
               id="email"
               name="email"
               type="email"
-              placeholder="Enter email address"
+                placeholder="Enter company email address"
               value={form.email}
               onChange={handleChange}
               required
