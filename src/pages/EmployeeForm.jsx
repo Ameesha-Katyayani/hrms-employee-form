@@ -254,10 +254,8 @@ const handleSubmit = async (e) => {
     return;
   }
 
-  // ✅ PROPER AADHAAR + PAN VALIDATION
-  const cleanAadhaar = form.aadhaarNumber.trim();
-  const cleanPan = form.panNumber.trim().toUpperCase();
-  // Aadhaar and PAN are now optional, so only validate if provided
+const cleanAadhaar = form.aadhaarNumber.trim() || null;
+const cleanPan = form.panNumber.trim().toUpperCase() || null;
   if (cleanAadhaar && !/^\d{12}$/.test(cleanAadhaar)) {
     alert("Aadhaar must be 12 digits");
     return;
@@ -333,7 +331,7 @@ const handleSubmit = async (e) => {
       return;
     }
 
-    if (cleanPan) {
+ if (cleanPan !== null) {
       const { data: existingPan } = await supabase
         .from("employees")
         .select("id")
