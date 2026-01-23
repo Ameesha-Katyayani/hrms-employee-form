@@ -982,7 +982,7 @@ const handleSubmit = async (e) => {
               value={form.permanentAddress}
               onChange={handleChange}
               rows="3"
-              required
+           
             />
           </div>
 
@@ -996,7 +996,7 @@ const handleSubmit = async (e) => {
                 placeholder="City"
                 value={form.permanentCity}
                 onChange={handleChange}
-                required
+          
               />
             </div>
 
@@ -1573,7 +1573,7 @@ const handleSubmit = async (e) => {
               placeholder="Enter guardian name"
               value={form.guardianName}
               onChange={handleChange}
-              required
+          
             />
           </div>
 
@@ -1585,7 +1585,7 @@ const handleSubmit = async (e) => {
                 name="guardianRelation"
                 value={form.guardianRelation}
                 onChange={handleChange}
-                required
+ 
               >
                 <option value="">Select</option>
                 <option value="Father">Father</option>
@@ -1606,7 +1606,7 @@ const handleSubmit = async (e) => {
                 placeholder="Enter phone number"
                 value={form.guardianPhone}
                 onChange={handleChange}
-                required
+        
               />
             </div>
           </div>
@@ -1620,7 +1620,7 @@ const handleSubmit = async (e) => {
               value={form.guardianAddress}
               onChange={handleChange}
               rows="3"
-              required
+           
             />
           </div>
         </div>
@@ -1638,7 +1638,7 @@ const handleSubmit = async (e) => {
               placeholder="Enter emergency contact name"
               value={form.emergencyContactName}
               onChange={handleChange}
-              required
+         
             />
           </div>
 
@@ -1650,7 +1650,7 @@ const handleSubmit = async (e) => {
                 name="emergencyContactRelation"
                 value={form.emergencyContactRelation}
                 onChange={handleChange}
-                required
+           
               >
                 <option value="">Select</option>
                 <option value="Parent">Parent</option>
@@ -1670,7 +1670,7 @@ const handleSubmit = async (e) => {
                 placeholder="Enter phone number"
                 value={form.emergencyContactPhone}
                 onChange={handleChange}
-                required
+
               />
             </div>
           </div>
@@ -1776,7 +1776,7 @@ const handleSubmit = async (e) => {
               onChange={handleChange}
               maxLength="12"
               pattern="[0-9]{12}"
-              required
+             
             />
           </div>
 
@@ -1787,7 +1787,7 @@ const handleSubmit = async (e) => {
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={(e) => handleDocumentChange("aadhaarCard", e.target.files[0])}
-              required
+        
             />
             <small className="file-hint">Upload PDF, JPG, or PNG (Max 5MB)</small>
             {documents.aadhaarCard && (
@@ -1809,7 +1809,7 @@ const handleSubmit = async (e) => {
               maxLength="10"
               pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
               style={{ textTransform: 'uppercase' }}
-              required
+        
             />
           </div>
 
@@ -1844,7 +1844,7 @@ const handleSubmit = async (e) => {
                   value="yes"
                   checked={form.hasKatyayaniLetter === "yes"}
                   onChange={handleChange}
-                  required
+                 
                 />
                 <span>Yes</span>
               </label>
@@ -1855,7 +1855,7 @@ const handleSubmit = async (e) => {
                   value="no"
                   checked={form.hasKatyayaniLetter === "no"}
                   onChange={handleChange}
-                  required
+             
                 />
                 <span>No</span>
               </label>
@@ -1870,7 +1870,7 @@ const handleSubmit = async (e) => {
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={(e) => handleDocumentChange("katyayaniLetter", e.target.files[0])}
-                required
+              
               />
               <small className="file-hint">Upload PDF, JPG, or PNG (Max 5MB)</small>
               {documents.katyayaniLetter && (
