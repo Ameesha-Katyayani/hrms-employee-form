@@ -242,11 +242,6 @@ const handleSubmit = async (e) => {
   }
 
   // ✅ Additional required checks that cause DB errors if missing
-  if (!form.panNumber?.trim()) {
-    alert("PAN number is required");
-    return;
-  }
-
   if (!form.guardianName?.trim() || !form.guardianRelation || !form.guardianPhone || !form.guardianAddress?.trim()) {
     alert("Please complete guardian details (name, relation, phone, address)");
     return;
@@ -262,13 +257,12 @@ const handleSubmit = async (e) => {
   // ✅ PROPER AADHAAR + PAN VALIDATION
   const cleanAadhaar = form.aadhaarNumber.trim();
   const cleanPan = form.panNumber.trim().toUpperCase();
-
-  if (!/^\d{12}$/.test(cleanAadhaar)) {
+  // Aadhaar and PAN are now optional, so only validate if provided
+  if (cleanAadhaar && !/^\d{12}$/.test(cleanAadhaar)) {
     alert("Aadhaar must be 12 digits");
     return;
   }
-
-  if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(cleanPan)) {
+  if (cleanPan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(cleanPan)) {
     alert("PAN must be valid like ABCDE1234F");
     return;
   }
@@ -278,10 +272,11 @@ const handleSubmit = async (e) => {
     alert("Please upload your photo");
     return;
   }
-  if (!documents.aadhaarCard) {
-    alert("Please upload your Aadhaar card");
-    return;
-  }
+  // Aadhaar and PAN card are now optional
+  // if (!documents.aadhaarCard) {
+  //   alert("Please upload your Aadhaar card");
+  //   return;
+  // }
 
   // ✅ 10th and 12th mandatory
   if (!documents.tenthMarksheet) {
@@ -312,16 +307,18 @@ const handleSubmit = async (e) => {
     console.log("EMPLOYEE PAYLOAD", form);
 
     // ✅ CHECK DUPLICATES BEFORE UPLOAD (BIG FIX)
-    const { data: existingAadhaar } = await supabase
-      .from("employees")
-      .select("id")
-      .eq("aadhaar_number", cleanAadhaar)
-      .maybeSingle();
-
-    if (existingAadhaar) {
-      setIsSubmitting(false);
-      alert("This Aadhaar number is already registered.");
-      return;
+    // Aadhaar and PAN are optional, so only check for duplicates if provided
+    if (cleanAadhaar) {
+      const { data: existingAadhaar } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("aadhaar_number", cleanAadhaar)
+        .maybeSingle();
+      if (existingAadhaar) {
+        setIsSubmitting(false);
+        alert("This Aadhaar number is already registered.");
+        return;
+      }
     }
 
     const { data: existingEmail } = await supabase
@@ -342,7 +339,6 @@ const handleSubmit = async (e) => {
         .select("id")
         .eq("pan_number", cleanPan)
         .maybeSingle();
-
       if (existingPan) {
         setIsSubmitting(false);
         alert("This PAN number is already registered.");
